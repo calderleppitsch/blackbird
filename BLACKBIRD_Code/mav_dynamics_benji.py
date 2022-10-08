@@ -10,13 +10,13 @@ part of mavsimPy
         1/14/2019 - RWB
 """
 import sys
-sys.path.append('..')
+sys.path.append('/Users/C/Dropbox/work/blackbird')
 import numpy as np
 
 # load message types
-from message_types.msg_state import MsgState
+from UAVBook_references.message_types.msg_state import MsgState
 import aero_params_benji as MAV
-from tools.rotations import Quaternion2Euler, Quaternion2Rotation
+from UAVBook_references.tools.rotations import Quaternion2Euler, Quaternion2Rotation
 
 
 class MavDynamics:
