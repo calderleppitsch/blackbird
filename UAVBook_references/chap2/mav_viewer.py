@@ -12,13 +12,13 @@ import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import pyqtgraph.Vector as Vector
-from chap2.draw_mav import DrawMav
+from draw_mav import DrawMav
 
 
 class MavViewer():
     def __init__(self):
         # initialize Qt gui application and window
-        self.app = pg.QtGui.QApplication([])  # initialize QT
+        self.app = pg.QtWidgets.QApplication([])  # initialize QT
         self.window = gl.GLViewWidget()  # initialize the view object
         self.window.setWindowTitle('MAV Viewer')
         self.window.setGeometry(0, 0, 1000, 1000)  # args: upper_left_x, upper_right_y, width, height

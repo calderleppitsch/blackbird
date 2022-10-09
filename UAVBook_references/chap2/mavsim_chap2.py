@@ -5,10 +5,10 @@ mavSimPy
         1/10/2019 - RWB
 """
 import sys
-sys.path.append('..')
+sys.path.append('/Users/C/Dropbox/work/blackbird/UAVBook_references')
 
 # import viewers and video writer
-from chap2.mav_viewer import MavViewer
+from mav_viewer import MavViewer
 
 # import parameters
 import parameters.simulation_parameters as SIM

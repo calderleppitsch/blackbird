@@ -10,16 +10,16 @@ import math
 #   Initial conditions for MAV
 north0 = 0.  # initial north position
 east0 = 0.  # initial east position
-down0 = -100.  # initial down position
+down0 = 0.  # initial down position
 u0 = 20.  # initial velocity along body x-axis
-v0 = 20.  # initial velocity along body y-axis
-w0 = -20.  # initial velocity along body z-axis
+v0 = 0.  # initial velocity along body y-axis
+w0 = 0.  # initial velocity along body z-axis
 phi0 = 0.  # initial roll angle
 theta0 = 0.  # initial pitch angle
-psi0 = 0  # initial yaw angle
+psi0 = 0.  # initial yaw angle
 p0 = 0  # initial roll rate
 q0 = 0  # initial pitch rate
-r0 = 0  # initial yaw rate
+r0 = 0.3  # initial yaw rate
 Va0 = np.sqrt(u0**2+v0**2+w0**2)
 #   Quaternion State
 e = Euler2Quaternion(phi0, theta0, psi0)
@@ -29,20 +29,20 @@ e2 = e.item(2)
 e3 = e.item(3)
 
 #forces and moments initial condition
-fx = 0 
-fy = 0 
-fz = 9.8 *11
-l = 0
-m = 0
-n = 0
+fx = 7.
+fy = 5.
+fz = 0
+l = 0.
+m = 0.
+n = 0.
 
 
 ######################################################################################
                 #   Physical Parameters
 ######################################################################################
-mass = 11. #kg
-Jx = 0.8244 #kg m^2
-Jy = 1.135
+mass = 10. #kg
+Jx = 1.8244 #kg m^2
+Jy = 5.35
 Jz = 1.759
 Jxz = 0.1204
 S_wing = 0.55

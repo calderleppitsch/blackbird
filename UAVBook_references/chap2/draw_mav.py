@@ -4,6 +4,8 @@ mavsim_python: drawing tools
     - Update history:
         4/15/2019 - BGM
 """
+import sys
+sys.path.append('/Users/C/Dropbox/work/blackbird/UAVBook_references')
 import numpy as np
 import pyqtgraph.opengl as gl
 from tools.rotations import Euler2Rotation
