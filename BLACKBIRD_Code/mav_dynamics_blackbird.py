@@ -39,7 +39,7 @@ class MavDynamics:
                                [MAV.q0],    # (11)
                                [MAV.r0]])   # (12)
         self.true_state = MsgState()
-        self.forces_moments = np.array([MAV.fx, MAV.fy, MAV.fz, MAV.l, MAV.m, MAV.n])
+        #self.forces_moments = np.array([MAV.fx, MAV.fy, MAV.fz, MAV.l, MAV.m, MAV.n])
 
     ###################################
     # public functions
@@ -57,6 +57,12 @@ class MavDynamics:
         k3 = self._derivatives(self._state + time_step/2.*k2, forces_moments)
         k4 = self._derivatives(self._state + time_step*k3, forces_moments)
         self._state = self._state + ((time_step/6) * (k1 + 2*k2 + 2*k3 + k4))
+
+        #round off to zero if there is small error
+        for i in range(0, 12):
+            if self._state[i][0] < .000001 and self._state[i][0] > -.000001:
+                self._state[i][0] = 0.
+
         # normalize the quaternion
         e0 = self._state.item(6)
         e1 = self._state.item(7)
@@ -99,21 +105,18 @@ class MavDynamics:
         m = forces_moments.item(4)
         n = forces_moments.item(5)
 
-        quaternion = np.array([e0,
-                               e1,
-                               e2,
-                               e3])
+        quaternion = np.transpose(np.array([e0, e1, e2, e3]))
 
         phi, theta, psi = Quaternion2Euler(quaternion)
         Rotation = Quaternion2Rotation(quaternion)
-        v_b = np.array([u, v, w])
+        v_b = np.transpose(np.array([u, v, w]))
      
         # position kinematics
-        pos_dot = Rotation @ np.transpose(v_b)
+        pos_dot = Rotation @ v_b
         
-        north_dot = pos_dot[0]
-        east_dot = pos_dot[1]
-        down_dot = pos_dot[2]       
+        north_dot = pos_dot.item(0)
+        east_dot = pos_dot.item(1)
+        down_dot = pos_dot.item(2)
     
         # position dynamics
         u_dot = (r*v - q*w)+(fx/(MAV.mass))
@@ -127,10 +130,10 @@ class MavDynamics:
                       [r, q, -p, 0]])
         e_dot = .5 * (R @ quaternion)
         
-        e0_dot = e_dot[0]
-        e1_dot = e_dot[1]
-        e2_dot = e_dot[2]
-        e3_dot = e_dot[3]
+        e0_dot = e_dot.item(0)
+        e1_dot = e_dot.item(1)
+        e2_dot = e_dot.item(2)
+        e3_dot = e_dot.item(3)
 
         # rotatonal dynamics
         # moments = np.array([l,m,n])

@@ -17,13 +17,13 @@ dt = .1
 #initialize the dynamics class
 test = dynamics.MavDynamics(dt)
 
-def forces_moments(time):
-    fx = 0
-    fy = 0
-    fz = 0
-    l = 0
-    m = 0
-    n = 0
+def forces_moments(phi, theta, psi, time):
+    fx = -MAV.mass*9.8*np.sin((theta))
+    fy = MAV.mass*9.8*np.sin((phi))*np.cos((theta))
+    fz = MAV.mass*9.8*np.cos((phi))*np.cos((theta))
+    l = 0.
+    m = 0.
+    n = 0.
     return np.array([[fx],
                     [fy],
                     [fz],
@@ -46,11 +46,11 @@ q = [MAV.q0]
 r = [MAV.r0]
 
 # run time = dt*steps
-step = 100
+step = 200
 
 #integrate function 
 for i in range(0, step):
-    test.update(forces_moments(i*dt))
+    test.update(forces_moments(phi[i],theta[i],psi[i],i*dt))
     x.append(test.true_state.north)
     z.append(test.true_state.altitude)
     y.append(test.true_state.east)
@@ -75,17 +75,17 @@ plt.figure()
 plt.plot(time, x, label = 'x pos')
 plt.plot(time, y, label = 'y pos')
 plt.plot(time, z, label = 'z pos')
-plt.title('Position over time')
+plt.title('Position over time in intertial frame')
 
 plt.xlabel('time (s)')
 plt.ylabel('distance (m)')
 plt.legend()
 
 plt.figure()
-plt.plot(time, u, label = 'x vel')
-plt.plot(time, v, label = 'y vel')
-plt.plot(time, w, label = 'z vel')
-plt.title('Velocity over time')
+plt.plot(time, u, label = 'u')
+plt.plot(time, v, label = 'v')
+plt.plot(time, w, label = 'w')
+plt.title('Velocity in body frame')
 
 plt.xlabel('time (s)')
 plt.ylabel('velocity (m/s)')
@@ -95,7 +95,7 @@ plt.figure()
 plt.plot(time, phi, label = '$phi$')
 plt.plot(time, theta, label = '$theta$')
 plt.plot(time, psi, label = '$psi$')
-plt.title('Rotation over time')
+plt.title('Rotation over time in intertial frame')
 
 plt.xlabel('time (s)')
 plt.ylabel('Rotation (degrees)')
@@ -105,7 +105,7 @@ plt.figure()
 plt.plot(time, p, label = '$\phi$ vel')
 plt.plot(time, q, label = '$theta$ vel')
 plt.plot(time, r, label = '$\psi$ vel')
-plt.title('Rotational Velocity over time')
+plt.title('Rotational Velocity Rates')
 
 plt.xlabel('time (s)')
 plt.ylabel('rotational velocity (deg/s)')
