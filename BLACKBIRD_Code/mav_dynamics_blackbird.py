@@ -58,11 +58,6 @@ class MavDynamics:
         k4 = self._derivatives(self._state + time_step*k3, forces_moments)
         self._state = self._state + ((time_step/6) * (k1 + 2*k2 + 2*k3 + k4))
 
-        #round off to zero if there is small error
-        for i in range(0, 12):
-            if self._state[i][0] < .000001 and self._state[i][0] > -.000001:
-                self._state[i][0] = 0.
-
         # normalize the quaternion
         e0 = self._state.item(6)
         e1 = self._state.item(7)
@@ -157,7 +152,7 @@ class MavDynamics:
     #     steady_state = wind[0:3]
     #     gust = wind[3:6]
     #     # convert wind vector from world to body frame and add gust
-    #     wind_body_frame =
+    #     wind_body_frame = 
     #     # velocity vector relative to the airmass
     #     v_air = 
     #     ur = 

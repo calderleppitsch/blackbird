@@ -11,15 +11,15 @@ import math
 north0 = 0.  # initial north position
 east0 = 0.  # initial east position
 down0 = 0.  # initial down position
-u0 = 20.  # initial velocity along body x-axis
+u0 = 10.  # initial velocity along body x-axis
 v0 = 0.  # initial velocity along body y-axis
 w0 = 0.  # initial velocity along body z-axis
 phi0 = 0.  # initial roll angle
-theta0 = 0.  # initial pitch angle
+theta0 = np.pi/4  # initial pitch angle
 psi0 = 0.  # initial yaw angle
-p0 = 0  # initial roll rate
-q0 = 0  # initial pitch rate
-r0 = 0.3  # initial yaw rate
+p0 = 1.75*np.sin(np.pi/4)  # initial roll rate
+q0 = 0.  # initial pitch rate
+r0 = 1.75*np.cos(np.pi/4)  # initial yaw rate
 Va0 = np.sqrt(u0**2+v0**2+w0**2)
 #   Quaternion State
 e = Euler2Quaternion(phi0, theta0, psi0)
@@ -40,11 +40,12 @@ e3 = e.item(3)
 ######################################################################################
                 #   Physical Parameters
 ######################################################################################
-mass = 10. #kg
-Jx = 1.8244 #kg m^2
-Jy = 5.35
-Jz = 1.759
-Jxz = 0.1204
+mass = 1.5 #kg
+a = 0.1 #m
+Jx = (2*mass*a**2)/5 #kg m^2
+Jy = (2*mass*a**2)/5
+Jz = (2*mass*a**2)/5
+Jxz = 0.
 S_wing = 0.55
 b = 2.8956
 c = 0.18994
