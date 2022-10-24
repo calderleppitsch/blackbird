@@ -219,11 +219,11 @@ class MavDynamics:
         beta = self._beta
         fxz = np.array([[np.cos(alpha), -np.sin(alpha)],[np.sin(alpha), np.cos(alpha)]]) @ np.array([[-F_drag], [-F_lift]])
         fx = fxz[0][0] + f_g[0] + thrust_prop
-        fz = fxz[1][0] + f_g[1]
+        fz = fxz[1][0] + f_g[2]
 
         # compute lateral forces in body frame
         CY = (MAV.C_Y_0) + (MAV.C_Y_beta*beta) + (MAV.C_Y_p*p*MAV.b*VC) + (MAV.C_Y_r*r*MAV.b*VC) + (MAV.C_Y_delta_a*delta.item(1)) + (MAV.C_Y_delta_r*delta.item(2))
-        fy = RVS*CY + f_g[2]
+        fy = RVS*CY + f_g[1]
 
         # compute logitudinal torque in body frame
         Cm = (MAV.C_m_0) + (MAV.C_m_alpha*alpha) + (MAV.C_m_q*q*MAV.c*VC) + (MAV.C_m_delta_e*delta.item(0))
