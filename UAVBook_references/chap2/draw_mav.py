@@ -6,6 +6,7 @@ mavsim_python: drawing tools
 """
 import sys
 sys.path.append('/Users/C/Dropbox/work/blackbird/UAVBook_references')
+sys.path.append('..')
 import numpy as np
 import pyqtgraph.opengl as gl
 from tools.rotations import Euler2Rotation
@@ -93,9 +94,22 @@ class DrawMav:
 
         # points are in NED coordinates
         # define the points on the aircraft following diagram Fig 2.14
-        points = np.array([[0, 0, 0],  # point 1 [0]
-                           [1, 1, 1],  # point 2 [1]
-                           [1, 1, 0],  # point 3 [2]
+        points = np.array([[fuse_l1, 0, 0],  # point 1 [0]
+                           [fuse_l2, fuse_w/2, -1*fuse_h/2],  # point 2 [1]
+                           [fuse_l2, -1*fuse_w/2, -1*fuse_h/2],  # point 3 [2]
+                           [fuse_l2, -1*fuse_w/2, fuse_h/2],  # point 4 [3]]
+                           [fuse_l2, fuse_w/2, fuse_h/2],  # point 5 [4]
+                           [-1*fuse_l3, 0, 0],  # point 6 [5]
+                           [0, wing_w/2, 0], #point 7 [6]
+                           [-1*wing_l, wing_w/2, 0],  # point 8 [7]]
+                           [-1*wing_l, -1*wing_w/2, 0],  # point 9 [8]
+                           [0, -1*wing_w/2, 0],  # point 10 [9]
+                           [tail_l - fuse_l3, tail_w/2, 0],  # point 11 [10]
+                           [-1*fuse_l3, tail_w/2, 0],  # point 12 [11]
+                           [-1*fuse_l3, -1*tail_w/2, 0], #point 13 [12]
+                           [tail_l - fuse_l3, -1*tail_w/2, 0],  # point 14 [13]]
+                           [tail_l - fuse_l3, 0, 0],  # point 15 [14]
+                           [-1*fuse_l3, 0, -1*tail_h],  # point 16 [15]
                            ]).T
 
         # scale points for better rendering
@@ -108,7 +122,20 @@ class DrawMav:
         blue = np.array([0., 0., 1., 1])
         yellow = np.array([1., 1., 0., 1])
         meshColors = np.empty((13, 3, 4), dtype=np.float32)
-        meshColors[0] = yellow
+        meshColors[0] = red
+        meshColors[1] = yellow
+        meshColors[2] = blue
+        meshColors[3] = yellow
+        meshColors[4] = red
+        meshColors[5] = yellow
+        meshColors[6] = blue
+        meshColors[7] = yellow
+        meshColors[8] = green
+        meshColors[9] = green
+        meshColors[10] = green
+        meshColors[11] = green
+        meshColors[12] = red
+
 
         return points, meshColors
 
@@ -119,6 +146,19 @@ class DrawMav:
           (a rectangle requires two triangular mesh faces)
         """
         points = points.T
-        mesh = np.array([[points[0], points[1], points[2]]])
+        mesh = np.array([[points[0], points[1], points[2]],
+                        [points[0], points[2], points[3]],
+                        [points[0], points[3], points[4]],
+                        [points[0], points[1], points[4]],
+                        [points[1], points[2], points[5]],
+                        [points[2], points[3], points[5]],
+                        [points[3], points[4], points[5]],
+                        [points[1], points[4], points[5]],
+                        [points[6], points[8], points[9]],
+                        [points[6], points[8], points[7]],
+                        [points[10], points[11], points[13]],
+                        [points[11], points[12], points[13]],
+                        [points[5], points[14], points[15]],
+                        ])
 
         return mesh

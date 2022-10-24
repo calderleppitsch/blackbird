@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import params_blackbird as MAV
-import mav_dynamics_blackbird as dynamics
+import blackbird_dynamics_v1 as dynamics
 
 
-#time step for integraion
-dt = .01
+#time step for integration
+dt = .001
 
 #initialize the dynamics class
 test = dynamics.MavDynamics(dt)
@@ -88,14 +88,14 @@ for n in range(0, i):
 # plt.legend()
 
 # plt.figure()
-# plt.plot(time, phi, label = '$phi$')
-# plt.plot(time, theta, label = '$theta$')
-# plt.plot(time, psi, label = '$psi$')
+# plt.plot(time, phi, label = chr(966))
+# plt.plot(time, theta, label = chr(952))
+# plt.plot(time, psi, label = chr(968))
 # plt.title('Rotation over time in inertial frame')
-
 # plt.xlabel('time (s)')
 # plt.ylabel('Rotation (degrees)')
 # plt.legend()
+# plt.show()
 
 # plt.figure()
 # plt.plot(time, p, label = '$\phi$ vel')
@@ -106,7 +106,13 @@ for n in range(0, i):
 # plt.xlabel('time (s)')
 # plt.ylabel('rotational velocity (deg/s)')
 # plt.legend()
-# plt.show()
+
+# plt.figure()
+# plt.plot(x, z)
+# plt.title('Flight Path in XZ plane')
+# plt.xlabel('Horizontal Distance [m]')
+# plt.ylabel('Altitude [m]')
+# plt.legend()
 
 plt.figure()
 ax = plt.axes(projection = '3d')
