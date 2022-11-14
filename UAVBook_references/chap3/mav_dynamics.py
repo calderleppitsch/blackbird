@@ -10,13 +10,13 @@ part of mavsimPy
         1/14/2019 - RWB
 """
 import sys
-sys.path.append('..')
+sys.path.append('/Users/C/Dropbox/work/blackbird')
 import numpy as np
 
 # load message types
-from message_types.msg_state import MsgState
-import parameters.aerosonde_parameters as MAV
-from tools.rotations import Quaternion2Euler, Quaternion2Rotation
+from UAVBook_references.message_types.msg_state import MsgState
+import UAVBook_references.parameters.aerosonde_parameters as MAV
+from UAVBook_references.tools.rotations import Quaternion2Euler, Quaternion2Rotation
 
 
 class MavDynamics:
@@ -55,7 +55,7 @@ class MavDynamics:
         k2 = self._derivatives(self._state + time_step/2.*k1, forces_moments)
         k3 = self._derivatives(self._state + time_step/2.*k2, forces_moments)
         k4 = self._derivatives(self._state + time_step*k3, forces_moments)
-        self._state += time_step/6 * (k1 + 2*k2 + 2*k3 + k4)
+        self._state = self._state + (time_step/6 * (k1 + 2*k2 + 2*k3 + k4))
 
         # normalize the quaternion
         e0 = self._state.item(6)
@@ -100,27 +100,49 @@ class MavDynamics:
         m = forces_moments.item(4)
         n = forces_moments.item(5)
 
-        # position kinematics
-        pos_dot = 
-        north_dot = 
-        east_dot = 
-        down_dot = 
+        quaternion = np.transpose(np.array([e0, e1, e2, e3]))
 
+        phi, theta, psi = Quaternion2Euler(quaternion)
+        Rotation = Quaternion2Rotation(quaternion)
+        v_b = np.transpose(np.array([u, v, w]))
+     
+        # position kinematics
+        pos_dot = Rotation @ v_b
+        
+        north_dot = pos_dot.item(0)
+        east_dot = pos_dot.item(1)
+        down_dot = pos_dot.item(2)
+    
         # position dynamics
-        u_dot = 
-        v_dot = 
-        w_dot = 
+        u_dot = (r*v - q*w)+(fx/(MAV.mass))
+        v_dot = (p*w - r*u)+(fy/(MAV.mass))
+        w_dot = (q*u - p*v)+(fz/(MAV.mass))
 
         # rotational kinematics
-        e0_dot = 
-        e1_dot = 
-        e2_dot = 
-        e3_dot = 
+        R = np.array([[0, -p, -q, -r],
+                      [p, 0, r, -q],
+                      [q, -r, 0, p],
+                      [r, q, -p, 0]])
+        e_dot = .5 * (R @ quaternion)
+        
+        e0_dot = e_dot.item(0)
+        e1_dot = e_dot.item(1)
+        e2_dot = e_dot.item(2)
+        e3_dot = e_dot.item(3)
 
         # rotatonal dynamics
-        p_dot = 
-        q_dot = 
-        r_dot = 
+        # moments = np.array([l,m,n])
+        # w = np.array([p,q,r])
+        # J = np.array([[MAV.Jx, 0, -MAV.Jxz],
+        #               [0, MAV.Jy, 0],
+        #               [-MAV.Jxz, 0, MAV.Jx]])
+        # omega_dot = np.linalg.inv(J) @ (np.cross(-w, (J @ np.transpose(w))) + moments)
+        # p_dot = omega_dot[0]
+        # q_dot = omega_dot[1]
+        # r_dot = omega_dot[2]
+        p_dot = MAV.gamma1*p*q-MAV.gamma2*q*r+MAV.gamma3*l+MAV.gamma4*n
+        q_dot = MAV.gamma5*p*r-MAV.gamma6*(p**2-r**2)+(m/MAV.Jy)
+        r_dot = MAV.gamma7*p*q-MAV.gamma1*q*r+MAV.gamma4*l+MAV.gamma8*n
 
         # collect the derivative of the states
         x_dot = np.array([[north_dot, east_dot, down_dot, u_dot, v_dot, w_dot,
@@ -133,6 +155,9 @@ class MavDynamics:
         self.true_state.north = self._state.item(0)
         self.true_state.east = self._state.item(1)
         self.true_state.altitude = -self._state.item(2)
+        self.true_state.u = self._state.item(3)
+        self.true_state.v = self._state.item(4)
+        self.true_state.w = self._state.item(5)
         self.true_state.phi = phi
         self.true_state.theta = theta
         self.true_state.psi = psi

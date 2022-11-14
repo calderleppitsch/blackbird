@@ -1,7 +1,7 @@
 import sys
-sys.path.append('..')
+sys.path.append('/Users/C/Dropbox/work/blackbird')
 import numpy as np
-from tools.rotations import Euler2Quaternion
+from UAVBook_references.tools.rotations import Euler2Quaternion
 
 ######################################################################################
                 #   Initial Conditions
