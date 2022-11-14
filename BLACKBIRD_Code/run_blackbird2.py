@@ -21,7 +21,7 @@ from message_types.msg_state import MsgState
 #Time Variables
 ts_simulation = 0.01  # smallest time step for simulation
 start_time = 0.  # start time for simulation
-end_time = 100.  # end time for simulation
+end_time = 50.  # end time for simulation
 
 ts_video = 0.1  # write rate for video
 ts_control = ts_simulation  # sample rate for the controller
@@ -54,7 +54,7 @@ wind=np.zeros((6,1))
 
 sim_time = start_time
 while sim_time < end_time:
-    delta.from_array(np.array([0.0, 0.0, 0.0, 0.0])) #[-0.2, 0.05, 0.05, 0.5]
+    delta.from_array(np.array([-0.15, 0.045, 0.06, 0.5])) #[-0.2, 0.05, 0.05, 0.5]
     blackbird.update(delta.to_array(),wind)
     x.append(blackbird.true_state.north)
     alt.append(blackbird.true_state.altitude)
@@ -76,21 +76,23 @@ if VIDEO is True:
                         bounding_box=(0, 0, 1000, 1000),
                         output_rate=ts_video)
 
-sim_time = start_time
-i = 0
-visualize_state = MsgState()
-while sim_time < end_time:
-    visualize_state.north = x[i]
-    visualize_state.east = y[i]
-    visualize_state.altitude = alt[i]
-    visualize_state.phi = phi[i]
-    visualize_state.theta = theta[i]
-    visualize_state.psi = psi[i]
-    mav_view.update(visualize_state)
-    if VIDEO is True:
-        video.update(sim_time)
-    sim_time = sim_time + ts_video
-    i = i + np.int(ts_video/ts_simulation)
+visualize = True
+while(visualize):
+    sim_time = start_time
+    i = 0
+    visualize_state = MsgState()
+    while sim_time < end_time:
+        visualize_state.north = x[i]
+        visualize_state.east = y[i]
+        visualize_state.altitude = alt[i]
+        visualize_state.phi = phi[i]
+        visualize_state.theta = theta[i]
+        visualize_state.psi = psi[i]
+        mav_view.update(visualize_state)
+        if VIDEO is True:
+            video.update(sim_time)
+        sim_time = sim_time + ts_video
+        i = i + np.int32(ts_video/ts_simulation)
 
 if VIDEO is True:
     video.close()
