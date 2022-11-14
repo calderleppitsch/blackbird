@@ -52,10 +52,14 @@ beta = [0]
 #Run the simulation
 wind=np.zeros((6,1))
 
+delta.elevator = -0.15
+delta.aileron = 0.045
+delta.rudder = 0.06
+delta.throttle = 0.5
+
 sim_time = start_time
 while sim_time < end_time:
-    delta.from_array(np.array([-0.15, 0.045, 0.06, 0.5])) #[-0.2, 0.05, 0.05, 0.5]
-    blackbird.update(delta.to_array(),wind)
+    blackbird.update(delta,wind)
     x.append(blackbird.true_state.north)
     alt.append(blackbird.true_state.altitude)
     y.append(blackbird.true_state.east)

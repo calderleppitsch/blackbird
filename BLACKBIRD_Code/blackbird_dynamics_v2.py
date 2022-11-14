@@ -11,6 +11,7 @@ part of mavPySim
 import sys
 sys.path.append('/Users/C/Dropbox/work/blackbird')
 import numpy as np
+import math
 
 from UAVBook_references.message_types.msg_state import MsgState
 import BLACKBIRD_Code.blackbird_params2 as MAV
@@ -197,41 +198,50 @@ class MavDynamics:
         r = self._state.item(12)
 
         # compute gravitaional forces
-        f_g = MAV.mass*9.8*np.array([-np.sin((theta)), np.sin((phi))*np.cos((theta)), np.cos((phi))*np.cos((theta))])
+        fgx = -MAV.mass*9.8*np.sin(theta)
+        fgy = MAV.mass*9.8*np.sin(phi)*np.cos(theta)
+        fgz = MAV.mass*9.8*np.cos(phi)*np.cos(theta)
 
         # compute Lift and Drag coefficients
         if self._Va == 0:
             VC = 0
         else:
             VC = 1.0 / (2*self._Va)
-        CL = (MAV.C_L_0) + (MAV.C_L_alpha*self._alpha) + (MAV.C_L_q * MAV.c * q * VC) + (MAV.C_L_delta_e * delta.item(0))
-        CD = (MAV.C_D_0) + (MAV.C_D_alpha*self._alpha) + (MAV.C_D_q * MAV.c * q * VC) + (MAV.C_D_delta_e * delta.item(0))
-        # compute Lift and Drag Forces
-        RVS = 0.5*MAV.rho*(self._Va**2)*MAV.S_wing
-        F_lift = RVS*CL
-        F_drag = RVS*CD
 
-        #compute propeller thrust and torque
-        thrust_prop, torque_prop = self._motor_thrust_torque(self._Va, delta.item(3))
-
-        # compute longitudinal forces in body frame
         alpha = self._alpha
         beta = self._beta
-        fxz = np.array([[np.cos(alpha), -np.sin(alpha)],[np.sin(alpha), np.cos(alpha)]]) @ np.array([[-F_drag], [-F_lift]])
-        fx = fxz[0][0] + f_g[0] + thrust_prop
-        fz = fxz[1][0] + f_g[2]
+
+        #Compute Sigmoid Function
+        e_neg_M = math.exp(-MAV.M * (alpha - MAV.alpha0))
+        e_pos_M = math.exp(MAV.M * (alpha + MAV.alpha0))
+        sigma = (1 + e_neg_M + e_pos_M) / ((1 + e_neg_M) * (1 + e_pos_M))
+
+        CL = ((1 - sigma) * (MAV.C_L_0 + MAV.C_L_alpha * alpha)) + (sigma * (2 * np.sign(alpha) * (np.sin(alpha) ** 2) * np.cos(alpha)))
+        CD = MAV.C_D_p + ((MAV.C_L_0 + MAV.C_L_alpha * alpha) ** 2) / (np.pi * MAV.e * MAV.AR)
+
+        # compute Lift and Drag Forces
+        RVS = 0.5*MAV.rho*(self._Va**2)*MAV.S_wing
+        F_lift = RVS*(CL + (MAV.C_L_q * MAV.c * q * VC) + (MAV.C_L_delta_e * delta.elevator))
+        F_drag = RVS*(CD + (MAV.C_D_q * MAV.c * q * VC) + (MAV.C_D_delta_e * delta.elevator))
+
+        #compute propeller thrust and torque
+        thrust_prop, torque_prop = self._motor_thrust_torque(self._Va, delta.throttle)
+
+        # compute longitudinal forces in body frame
+        fx = F_lift*np.sin(alpha) - F_drag*np.cos(alpha) + fgx + thrust_prop
+        fz = -F_lift*np.cos(alpha) -F_drag*np.sin(alpha) + fgz
 
         # compute lateral forces in body frame
-        CY = (MAV.C_Y_0) + (MAV.C_Y_beta*beta) + (MAV.C_Y_p*p*MAV.b*VC) + (MAV.C_Y_r*r*MAV.b*VC) + (MAV.C_Y_delta_a*delta.item(1)) + (MAV.C_Y_delta_r*delta.item(2))
-        fy = RVS*CY + f_g[1]
+        CY = (MAV.C_Y_0) + (MAV.C_Y_beta*beta) + (MAV.C_Y_p*p*MAV.b*VC) + (MAV.C_Y_r*r*MAV.b*VC) + (MAV.C_Y_delta_a*delta.aileron) + (MAV.C_Y_delta_r*delta.rudder)
+        fy = RVS*CY + fgy
 
         # compute logitudinal torque in body frame
-        Cm = (MAV.C_m_0) + (MAV.C_m_alpha*alpha) + (MAV.C_m_q*q*MAV.c*VC) + (MAV.C_m_delta_e*delta.item(0))
+        Cm = (MAV.C_m_0) + (MAV.C_m_alpha*alpha) + (MAV.C_m_q*q*MAV.c*VC) + (MAV.C_m_delta_e*delta.elevator)
         My = RVS*MAV.c*Cm
         # compute lateral torques in body frame
-        Cell = (MAV.C_ell_0) + (MAV.C_ell_beta*beta)+(MAV.C_ell_p*p*MAV.b*VC) + (MAV.C_ell_r*r*MAV.b*VC) + (MAV.C_ell_delta_a*delta.item(1)) + (MAV.C_ell_delta_r*delta.item(2))
+        Cell = (MAV.C_ell_0) + (MAV.C_ell_beta*beta)+(MAV.C_ell_p*p*MAV.b*VC) + (MAV.C_ell_r*r*MAV.b*VC) + (MAV.C_ell_delta_a*delta.aileron) + (MAV.C_ell_delta_r*delta.rudder)
         Mx = RVS*MAV.b*Cell + torque_prop
-        Cn = (MAV.C_n_0) + (MAV.C_n_beta*beta) + (MAV.C_n_p*p*MAV.b*VC) + (MAV.C_n_r*r*MAV.b*VC) + (MAV.C_n_delta_a*delta.item(1)) + (MAV.C_n_delta_r*delta.item(2))
+        Cn = (MAV.C_n_0) + (MAV.C_n_beta*beta) + (MAV.C_n_p*p*MAV.b*VC) + (MAV.C_n_r*r*MAV.b*VC) + (MAV.C_n_delta_a*delta.aileron) + (MAV.C_n_delta_r*delta.rudder)
         Mz = RVS*MAV.b*Cn
 
         self._forces[0] = fx 
