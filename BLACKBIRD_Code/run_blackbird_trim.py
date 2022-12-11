@@ -51,7 +51,7 @@ r = [PMT.r0]
 
 #Run the simulation
 Va = 25.0
-launch_angle = 45.0 #degrees
+launch_angle = 20.0 #degrees
 gamma = launch_angle*np.pi/180.0
 trim_state, trim_input = compute_trim(blackbird, Va, gamma)
 blackbird._state = trim_state
@@ -59,7 +59,7 @@ delta = trim_input
 
 sim_time = start_time
 while sim_time < end_time:
-    current_wind = np.zeros((6,1))#wind.update()
+    current_wind = wind.update()#np.zeros((6,1))
     blackbird.update(delta,current_wind)
     x.append(blackbird.true_state.north)
     alt.append(blackbird.true_state.altitude)
