@@ -7,15 +7,16 @@ mavsimPy
 """
 import sys
 sys.path.append('/Users/C/Dropbox/work/blackbird/UAVBook_references')
-sys.path.append('/Users/C/Dropbox/work/blackbird')
+sys.path.append('/Users/C/Dropbox/work/blackbird/BLACKBIRD_Code')
 import numpy as np
 import matplotlib.pyplot as plt
 
-import BLACKBIRD_Code.blackbird_params2 as PMT
-from BLACKBIRD_Code.blackbird_viewer import MavViewer
-from BLACKBIRD_Code.blackbird_dynamics_v2 import MavDynamics
+import blackbird_params2 as PMT
+from blackbird_viewer import MavViewer
+from blackbird_dynamics_v2 import MavDynamics
 from message_types.msg_delta import MsgDelta
 from message_types.msg_state import MsgState
+from blackbird_wind_simulation import WindSimulation
 
 ###########################################################
 #Time Variables
@@ -50,7 +51,7 @@ alpha = [0]
 beta = [0]
 
 #Run the simulation
-wind=np.zeros((6,1))
+wind=WindSimulation(ts_simulation)
 
 delta.elevator = -0.15
 delta.aileron = 0.045
@@ -59,7 +60,8 @@ delta.throttle = 0.5
 
 sim_time = start_time
 while sim_time < end_time:
-    blackbird.update(delta,wind)
+    current_wind = wind.update()
+    blackbird.update(delta,current_wind)
     x.append(blackbird.true_state.north)
     alt.append(blackbird.true_state.altitude)
     y.append(blackbird.true_state.east)
