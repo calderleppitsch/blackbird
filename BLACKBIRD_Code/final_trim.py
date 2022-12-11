@@ -7,37 +7,34 @@ compute_trim
 #COMPLETE
 
 import sys
-sys.path.append('..')
-sys.path.append('.')
+sys.path.append('/Users/C/Dropbox/work/blackbird/UAVBook_references')
+sys.path.append('/Users/C/Dropbox/work/blackbird/BLACKBIRD_Code')
 import numpy as np
 from scipy.optimize import minimize
-from UAVBook_references.tools.rotations import Euler2Quaternion
-from UAVBook_references.message_types.msg_delta import MsgDelta  
-import BLACKBIRD_Code.blackbird_dynamics_v2 as dynamics
+from tools.rotations import Euler2Quaternion
+from message_types.msg_delta import MsgDelta  
+import blackbird_dynamics_v2 as dynamics
 
 def compute_trim(mav, Va, gamma):
     # define initial state and input
-    e0 = Euler2Quaternion(0., gamma, 0.)
-    state0 = np.array([[0],  # (0)
-                       [0],   # (1)
+    e = Euler2Quaternion(0., gamma, 0.)
+    state0 = np.array([[0.],  # (0)
+                       [0.],   # (1)
                        [mav._state[2]],   # Down Position
                        [Va],   # (3)  Velocity in x direction
-                       [0],    # (4)
-                       [0],    # (5)
-                       [e0.item(0)],    # (6) #Initial Orientation
-                       [e0.item(1)],    # (7)
-                       [e0.item(2)],    # (8)
-                       [e0.item(3)],    # (9)
-                       [0],    # (10)
-                       [0],    # (11)
-                       [0]     # (12)
-                       ])
+                       [0.],    # (4)
+                       [0.],    # (5)
+                       [e.item(0)],    # (6) #Initial Orientation
+                       [e.item(1)],    # (7)
+                       [e.item(2)],    # (8)
+                       [e.item(3)],    # (9)
+                       [0.],    # (10)
+                       [0.],    # (11)
+                       [0.]     # (12)
+                       ],dtype='float')
     delta0 = MsgDelta()
-    x0 = np.concatenate((state0, delta0.to_array()), axis=0) #make one array with [state0,
-    #                                                                   delta0]
+    x0 = np.concatenate((state0, delta0.to_array()), axis=0)
     # define equality constraints
-    bound = ((None, None),(None, None),(None, None),(None, None), (None, None),(None, None),(None, None),(None, None),(None, None),(None, None),(None, None),(None, None),(None, None),\
-            (-1,1),(-1,1),(-1,1),(-1,1))
     cons = ({'type': 'eq',
              'fun': lambda x: np.array([
                                 x[3]**2 + x[4]**2 + x[5]**2 - Va**2,  # magnitude of velocity vector is Va
@@ -61,27 +58,36 @@ def compute_trim(mav, Va, gamma):
                                 ])
              })
     # solve the minimization problem to find the trim states and inputs
-    res = minimize(trim_objective_fun, x0, method='SLSQP', args=(mav, Va, gamma),
-                   bounds = bound, constraints=cons, options={'ftol': 1e-10, 'disp': True})
+    res = minimize(trim_objective_fun, x0, method='SLSQP', args=(mav, Va, gamma), constraints=cons, options={'ftol': 1e-10, 'disp': False})
     # extract trim state and input and return
     trim_state = np.array([res.x[0:13]]).T
-    trim_input = np.array([res.x.item(13), #elevator
-                          res.x.item(14), #aileron
-                          res.x.item(15), #rudder
-                          res.x.item(16)]) #throttle
-    #trim_input.print()
+    trim_input = MsgDelta(elevator=res.x.item(13),
+                          aileron=res.x.item(14),
+                          rudder=res.x.item(15),
+                          throttle=res.x.item(16))
+    trim_input.print()
     print('trim_state=', trim_state.T)
     return trim_state, trim_input
 
-
 def trim_objective_fun(x, mav, Va, gamma):
-    state = x[0:13]
-    delta = x[13:17]
+    x_star = x[0:13]
+    e0 = x_star[6]
+    e1 = x_star[7]
+    e2 = x_star[8]
+    e3 = x_star[9]
+    normE = np.sqrt(e0**2+e1**2+e2**2+e3**2)
+    x_star[6] = e0/normE
+    x_star[7] = e1/normE
+    x_star[8] = e2/normE
+    x_star[9] = e3/normE
+    delta_star = x[13:17]
     desired_trim_state_dot = np.array([[0],[0],[-Va*np.sin(gamma)],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]])
-    mav._state = state
+    mav._state = x_star
     mav._update_velocity_data()
+    delta = MsgDelta()
+    delta.from_array(delta_star)
     forces_moments = mav._forces_moments(delta)
-    f = mav._derivatives(state, forces_moments)
+    f = mav._derivatives(x_star, forces_moments)
     tmp = desired_trim_state_dot - f
     J = np.linalg.norm(tmp[2:13])**2.0 
     return J
